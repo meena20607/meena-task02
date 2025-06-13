@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prodigy Infotech-Task 02</title>
+  <style>
+    :root {
+      --bg: linear-gradient(-45deg, #ff9a9e, #fad0c4, #fbc2eb, #a18cd1);
+      --text-color: #222;
+      --card-bg: rgba(255, 255, 255, 0.95);
+    }
+
+    body.dark {
+      --bg: #0d1b2a;
+      --text-color: #f0f0f0;
+      --card-bg: rgba(20, 30, 50, 0.9);
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      background-size: 400% 400%;
+      animation: gradientBG 10s ease infinite;
+      color: var(--text-color);
+      transition: background 0.5s, color 0.5s;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    header {
+      background-color: #000;
+      color: #fff;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    .like-btn {
+      background: #e63946;
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      font-size: 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .like-btn:hover {
+      background: #ff4d6d;
+    }
+
+    .toggle-mode {
+      position: absolute;
+      top: 80px;
+      right: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      background: #444;
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+
+    .main {
+      height: calc(100vh - 70px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .stopwatch-container {
+      background: var(--card-bg);
+      padding: 30px 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    body.dark .stopwatch-container {
+      box-shadow: 0 0 20px rgba(0, 170, 255, 0.2);
+    }
+
+    .display {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    body.dark .display {
+      text-shadow: 0 0 10px rgba(0, 170, 255, 0.5);
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .buttons button {
+      flex: 1 1 45%;
+      padding: 10px;
+      font-size: 14px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #7f7fd5;
+      color: white;
+      transition: transform 0.2s ease;
+    }
+
+    .buttons button:hover {
+      transform: scale(1.05);
+    }
+
+    body.dark .buttons button {
+      background: linear-gradient(135deg, #1c3b6f, #1b2e59);
+      box-shadow: 0 0 10px rgba(0, 170, 255, 0.3);
+      color: #f0f0f0;
+    }
+
+    .laps {
+      list-style: none;
+      padding: 0;
+      max-height: 120px;
+      overflow-y: auto;
+      text-align: center;
+    }
+
+    .laps li {
+      background: #eaeaea;
+      margin: 5px auto;
+      padding: 8px;
+      width: 80%;
+      border-radius: 8px;
+    }
+
+    body.dark .laps li {
+      background: #1e2a44;
+      color: #f0f0f0;
+    }
+
+    @media (max-width: 500px) {
+      .display { font-size: 2rem; }
+      .buttons button { font-size: 13px; }
+      header h1 { font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header with title and like button -->
+  <header>
+    <h1>⏱️ Smart Stopwatch ⏰</h1>
+
+    <button class="like-btn" onclick="likeApp()">❤️ Like</button>
+  </header>
+
+  <!-- Dark mode toggle -->
+  <div class="toggle-mode" onclick="toggleTheme()">🌙 Toggle Mode</div>
+
+  <!-- Main content -->
+  <div class="main">
+    <div class="stopwatch-container">
+      <div class="display" id="display">00:00:00.000</div>
+      <div class="buttons">
+        <button onclick="startStopwatch()">Start</button>
+        <button onclick="pauseStopwatch()">Pause</button>
+        <button onclick="resetStopwatch()">Reset</button>
+        <button onclick="lapTime()">Lap</button>
+      </div>
+      <ul id="laps" class="laps"></ul>
+    </div>
+  </div>
+
+  <audio id="beep" src="https://www.soundjay.com/buttons/sounds/beep-07.mp3" preload="auto"></audio>
+
+  <script>
+    let [hours, minutes, seconds, milliseconds] = [0, 0, 0, 0];
+    let timer = null;
+
+    function updateDisplay() {
+      const h = hours.toString().padStart(2, "0");
+      const m = minutes.toString().padStart(2, "0");
+      const s = seconds.toString().padStart(2, "0");
+      const ms = milliseconds.toString().padStart(3, "0");
+      document.getElementById("display").innerText = `${h}:${m}:${s}.${ms}`;
+    }
+
+    function stopwatch() {
+      milliseconds += 10;
+      if (milliseconds >= 1000) {
+        milliseconds = 0;
+        seconds++;
+      }
+      if (seconds === 60) {
+        seconds = 0;
+        minutes++;
+      }
+      if (minutes === 60) {
+        minutes = 0;
+        hours++;
+      }
+      updateDisplay();
+    }
+
+    function startStopwatch() {
+      if (timer === null) {
+        timer = setInterval(stopwatch, 10);
+      }
+    }
+
+    function pauseStopwatch() {
+      clearInterval(timer);
+      timer = null;
+    }
+
+    function resetStopwatch() {
+      pauseStopwatch();
+      [hours, minutes, seconds, milliseconds] = [0, 0, 0, 0];
+      updateDisplay();
+      localStorage.removeItem("lapTimes");
+      document.getElementById("laps").innerHTML = "";
+    }
+
+    function lapTime() {
+      const lapText = document.getElementById("display").innerText;
+      const lap = document.createElement("li");
+      lap.innerText = lapText;
+      document.getElementById("laps").appendChild(lap);
+      document.getElementById("beep").play();
+
+      let laps = JSON.parse(localStorage.getItem("lapTimes")) || [];
+      laps.push(lapText);
+      localStorage.setItem("lapTimes", JSON.stringify(laps));
+    }
+
+    function loadLapTimes() {
+      const laps = JSON.parse(localStorage.getItem("lapTimes")) || [];
+      for (const lap of laps) {
+        const li = document.createElement("li");
+        li.textContent = lap;
+        document.getElementById("laps").appendChild(li);
+      }
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+    }
+
+    function likeApp() {
+      alert("Thank you for liking the stopwatch! ❤️");
+    }
+
+    updateDisplay();
+    loadLapTimes();
+  </script>
+</body>
+</html>
